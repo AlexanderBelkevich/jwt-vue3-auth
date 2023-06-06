@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const apiKey = 'AIzaSyCUYdawfZJ6kUdc2YGrjLtJesZ39Nn3Tbk';
+const apiKey = import.meta.env.VITE_API_KEY_FIREBASE;
 
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref({
@@ -15,14 +15,16 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref('');
   const loader = ref(false)
 
-  const signup = async (payload) => {
+  const auth = async (payload, type) => {
+    const stringUrl = type === 'signup' ? 'signUp' : 'signInWithPassword';
     error.value = '';
     loader.value = true;
     try {
-      let response = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+      let response = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:${stringUrl}?key=${apiKey}`, {
         ...payload,
         returnSecureToken: true
       });
+      console.log(response.data);
       userInfo.value = {
         token: response.data.idToken,
         email: response.data.email,
@@ -30,7 +32,6 @@ export const useAuthStore = defineStore('auth', () => {
         refreshToken: response.data.refreshToken,
         expiresIn: response.data.expiresIn
       }
-      loader.value = false;
     } catch(err) {
       switch (err.response.data.error.message) {
         case 'EMAIL_EXISTS':
@@ -39,12 +40,20 @@ export const useAuthStore = defineStore('auth', () => {
         case 'OPERATION_NOT_ALLOWED':
           error.value = 'Operation not allowed'
           break;
+        case 'EMAIL_NOT_FOUND':
+          error.value = 'Email not found'
+          break;
+        case 'INVALID_PASSWORD':
+          error.value = 'Invalid password'
+          break;
         default:
           error.value = 'Error'
           break;
       }
+      throw error.value;
+    } finally {
       loader.value = false;
     }
   }
-  return { signup, userInfo, error, loader }
+  return { auth, userInfo, error, loader }
 })
