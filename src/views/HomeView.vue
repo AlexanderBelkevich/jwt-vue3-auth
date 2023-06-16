@@ -1,9 +1,5 @@
-<script setup>
-import Button from 'primevue/button'
-</script>
-
 <template>
   <main>
-    <Button label="Submit" />
+    <h1>Home Page</h1>
   </main>
 </template>
