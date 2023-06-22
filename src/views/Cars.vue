@@ -1,12 +1,9 @@
 <script setup>
 import {ref, onMounted} from 'vue'
-import {useAuthStore} from '../stores/auth'
-import axios from 'axios'
+import axiosApiInstance from '../api'
 
 import Card from 'primevue/card'
 import Loader from '../components/Loader.vue'
-
-const authStore = useAuthStore();
 
 const cars = ref();
 const showLoader = ref(false);
@@ -14,7 +11,7 @@ const showLoader = ref(false);
 const getAllCars = async () => {
   showLoader.value = true
   try {
-    const response = await axios.get(`https://jwt-firebase-vue3-default-rtdb.europe-west1.firebasedatabase.app/cars.json`)
+    const response = await axiosApiInstance.get(`https://jwt-firebase-vue3-default-rtdb.europe-west1.firebasedatabase.app/cars.json`)
     cars.value = response.data
   } catch (err) {
     console.log(err.response);

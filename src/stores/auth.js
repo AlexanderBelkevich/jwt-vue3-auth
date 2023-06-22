@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import axiosApiInstance from '../api'
 
 const apiKey = import.meta.env.VITE_API_KEY_FIREBASE;
 
@@ -9,8 +9,7 @@ export const useAuthStore = defineStore('auth', () => {
     token: '',
     email: '',
     userId: '',
-    refreshToken: '',
-    expiresIn: ''
+    refreshToken: ''
   })
   const error = ref('');
   const loader = ref(false)
@@ -20,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = '';
     loader.value = true;
     try {
-      let response = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:${stringUrl}?key=${apiKey}`, {
+      let response = await axiosApiInstance.post(`https://identitytoolkit.googleapis.com/v1/accounts:${stringUrl}?key=${apiKey}`, {
         ...payload,
         returnSecureToken: true
       });
@@ -29,12 +28,10 @@ export const useAuthStore = defineStore('auth', () => {
         email: response.data.email,
         userId: response.data.localId,
         refreshToken: response.data.refreshToken,
-        expiresIn: response.data.expiresIn
       }
       localStorage.setItem('userTokens', JSON.stringify({
         token: userInfo.value.token,
-        refreshToken: userInfo.value.refreshToken,
-        expiresIn: response.data.expiresIn}))
+        refreshToken: userInfo.value.refreshToken}))
     } catch(err) {
       switch (err.response.data.error.message) {
         case 'EMAIL_EXISTS':
@@ -58,5 +55,15 @@ export const useAuthStore = defineStore('auth', () => {
       loader.value = false;
     }
   }
-  return { auth, userInfo, error, loader }
+
+  const logout = () => {
+    userInfo.value = {
+      token: '',
+      email: '',
+      userId: '',
+      refreshToken: ''
+    }
+  }
+
+  return { auth, userInfo, error, loader, logout }
 })
